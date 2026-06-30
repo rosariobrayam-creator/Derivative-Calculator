@@ -1,7 +1,7 @@
 def ConstantRule(expr):
     return expr*0
 def PowerRule(base, exponent):
-    return base*exponent**(base-1)
+    return (base*exponent)**(exponent-1)
 def ProductRule(left, right):
     return APrime(left)*right + left*BPrime(right)
 def QuotientRule(numerator, denominator):
