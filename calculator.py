@@ -1,11 +1,13 @@
+letterVariable = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+
 def ConstantRule(expr):
-    return expr*0
+    return '0'
 def PowerRule(base, exponent):
-    return (base*exponent)**(exponent-1)
+    return f'{int(exponent)}*{base}**{int(exponent)-1}'
 def ProductRule(left, right):
-    return APrime(left)*right + left*BPrime(right)
+    return APrime(left)*right + left*APrime(right)
 def QuotientRule(numerator, denominator):
-    return ((denominator*APrime(numerator)) - numerator*BPrime(denominator)) / (denominator**2)
+    return ((denominator*APrime(numerator)) - numerator*APrime(denominator)) / (denominator**2)
 def ChainRule(outer, inner):
     return APrime(inner)
 
@@ -18,35 +20,11 @@ def divide(left, right):
     return left / right
 
 def APrime(expr):
-    if '(' in expr and ')' in expr:
-        derivativeFirstSplit = expr.split('(')
-        derivativeParts = derivativeFirstSplit[1].split(')')
-        if derivativeFirstSplit[0] == '':
-            outer = derivativeParts[1]
-        else:
-            outer = derivativeFirstSplit[0]
-        inner = derivativeParts[0]
-        return ChainRule(outer, inner)
-    elif '**' in expr:
-        derivativeParts = expr.split('**')
-        base = float(derivativeParts[0])
-        exponent = float(derivativeParts[1])
-        return PowerRule(base, exponent)
-    elif '*' in expr:
-        derivativeParts = expr.split('*')
-        left = derivativeParts[0]
-        right = derivativeParts[1]
-        return ProductRule(left, right)
-    elif '/' in expr:
-        derivativeParts = expr.split('/')
-        numerator = derivativeParts[0]
-        denominator = derivativeParts[1]
-        return QuotientRule(numerator, denominator)
-    else:
+    no_variables = not any(var in expr for var in letterVariable)
+    if no_variables:
         return ConstantRule(expr)
-
-def BPrime(expr):
     if '(' in expr and ')' in expr:
+        '''Chain Rule'''
         derivativeFirstSplit = expr.split('(')
         derivativeParts = derivativeFirstSplit[1].split(')')
         if derivativeFirstSplit[0] == '':
@@ -55,17 +33,27 @@ def BPrime(expr):
             outer = derivativeFirstSplit[0]
         inner = derivativeParts[0]
         return ChainRule(outer, inner)
+    elif '*' in expr.replace('**', 'POW'):
+        '''Product Rule'''
+        temp = expr.replace('**', 'POW')
+        temp = expr.replace('**', 'POW')
+        parts = temp.split('*')
+        left = parts[0]
+        right = parts[1].replace('POW', '**')
+        if APrime(left) == '0':
+            derivative = APrime(right)
+            coefficient = int(derivative.split('*')[0])
+            power = derivative.split('*', 1)[1]
+            return f'{int(left) * coefficient}*{power}'
     elif '**' in expr:
-        derivativeParts = expr.split('**')
-        base = float(derivativeParts[0])
-        exponent = float(derivativeParts[1])
-        return PowerRule(base, exponent)
-    elif '*' in expr:
-        derivativeParts = expr.split('*')
-        left = derivativeParts[0]
-        right = derivativeParts[1]
-        return ProductRule(left, right)
+        '''Power Rule'''
+        if any(var in expr for var in letterVariable):
+            derivativeParts = expr.split('**')
+            base = str(derivativeParts[0])
+            exponent = str(derivativeParts[1])
+            return PowerRule(base, exponent)
     elif '/' in expr:
+        '''Qoutient Rule'''
         derivativeParts = expr.split('/')
         numerator = derivativeParts[0]
         denominator = derivativeParts[1]
